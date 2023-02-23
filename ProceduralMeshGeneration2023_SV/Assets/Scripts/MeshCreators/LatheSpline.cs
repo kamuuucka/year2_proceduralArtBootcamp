@@ -9,6 +9,7 @@ public class LatheSpline : MeshCreator {
 	public int NumCurves = 10; //number of segments around the mesh
 	public bool ModifySharedMesh = false;
 
+	public float uvScale = 1;
 	//helper function to map the x,y location of a vertex to an index in a 1D array
 	private int getIndex(int x, int y, int height) {
 		return y + x * height;
@@ -26,6 +27,27 @@ public class LatheSpline : MeshCreator {
 		int vertexCount = _vertices.Count;
 		int curveCount = NumCurves;
 
+		float maxY = _vertices[0].y;
+		float minY = _vertices[0].y;
+
+		for (int i = 0; i < _vertices.Count; i++)
+		{
+			if (i==0)
+			{
+				maxY = _vertices[i].y;
+				minY = _vertices[i].y;
+			} else if (_vertices[i-1].y < _vertices[i].y)
+			{
+				maxY = _vertices[i].y;
+			} else if (_vertices[i - 1].y > _vertices[i].y)
+			{
+				minY = _vertices[i].y;
+			}
+		}
+
+		float xUv = 0;
+		//Debug.Log("MIN: " + minY + " MAX: " + maxY);
+
 		//Go through all curves (vertical lines around mesh)
 		for (int curveIndex = 0; curveIndex <= curveCount; curveIndex++) {
 			//Create quaternion for rotating around y-axis (the curveIndex is used to determine the angle in degrees):
@@ -36,7 +58,8 @@ public class LatheSpline : MeshCreator {
 				//create a Vector3 from a Vector2 (or: set the z-coordinate of the curve point to zero):
 				Vector3 vertex = new Vector3(_vertices[vertexIndex].x, _vertices[vertexIndex].y, 0);
 				// TODO: add correct uvs
-				Vector2 uv = new Vector2(0, 0);
+				Vector2 uv = new Vector2(xUv += 1.0f / curveCount, (_vertices[vertexIndex].y - minY) / (maxY - minY));
+				uv *= uvScale;
 				//use quaternion to rotate the vertex into position:
 				vertex = rotation * vertex;
 				//add it to the mesh:
