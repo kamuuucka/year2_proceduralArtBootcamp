@@ -75,7 +75,10 @@ public class Extrude : MeshCreator {
 	// *IF* [polygon] respresents a simple polygon (no crossing edges), given in clockwise order, then 
 	// this method will return in [triangles] a triangulation of the polygon, using the vertex indices from [indices]
 	// If the assumption is not satisfied, the output is undefined.
-	void TriangulatePolygon(List<int> triangles, List<Vector2> polygon, List<int> indices) {
+	void TriangulatePolygon(List<int> triangles, List<Vector2> polygon, List<int> indices)
+	{
+		
+		
 		for (int i = 0; i < polygon.Count; i++) {
 			int i2 = (i + 1) % polygon.Count;
 			int i3 = (i + 2) % polygon.Count;
@@ -83,10 +86,32 @@ public class Extrude : MeshCreator {
 			Vector2 v = polygon[i2];
 			Vector2 w = polygon[i3];
 
-			// TODO: Check whether the polygon corner at point v is less than 180 degrees - if not continue the for loop (with the next value for i)
+			// TODO: Check whether the polygon corner at point v is less than 180 degrees
+			// - if not continue the for loop (with the next value for i)
 
-			// TODO: Check whether there are no other points of the polygon inside the triangle u,v,w - if not continue the for loop (with the next value for i)
-
+			if (!Clockwise(u, v, w))
+			{
+				continue;
+			}
+			
+			// TODO: Check whether there are no other points of the polygon inside the triangle u,v,w
+			// - if not continue the for loop (with the next value for i)
+			bool noPointsInsideTriangle = true;
+			for (int j = i + 3; j < polygon.Count; j++)
+			{
+				if (InsideTriangle(u, v, w, polygon[j]))
+				{
+					noPointsInsideTriangle = false;
+					break;
+				}
+			}
+			
+			if (!noPointsInsideTriangle)
+			{
+				continue;
+			}
+			
+			
 			// (Hint: see the methods below!!! :-)  )
 
 			// Add a triangle on u,v,w:
