@@ -57,7 +57,7 @@ public class LatheSpline : MeshCreator {
 			for (int vertexIndex = 0; vertexIndex<vertexCount; vertexIndex++) {
 				//create a Vector3 from a Vector2 (or: set the z-coordinate of the curve point to zero):
 				Vector3 vertex = new Vector3(_vertices[vertexIndex].x, _vertices[vertexIndex].y, 0);
-				// TODO: add correct uvs
+				//  add correct uvs
 				Vector2 uv = new Vector2(xUv += 1.0f / curveCount, (_vertices[vertexIndex].y - minY) / (maxY - minY));
 				uv *= uvScale;
 				//use quaternion to rotate the vertex into position:
