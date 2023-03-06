@@ -11,6 +11,10 @@ public class WarpMeshAlongSpline : MeshCreator
 	public bool ComputeUVs;
 	public bool ModifySharedMesh;
 
+	private Quaternion averageQuaternion(Quaternion point1, Quaternion point2)
+	{
+		return Quaternion.Lerp(point1, point2, 0.5f);
+	}
 	public override void RecalculateMesh() {
 		Curve curve = GetComponent<Curve>();
 		if (curve==null)
@@ -29,19 +33,39 @@ public class WarpMeshAlongSpline : MeshCreator
 		Vector3 max = bounds.max;
 		Vector3 min = bounds.min;
 
-		// First, compute directions & orientations for each line segment of the curve:
-		// TODO: for a better looking curve: for each curve point, first compute the *average direction* (normalized) of *both* incident line segments,
-		//   and then use that direction to compute the orientation of the point:
+		
+		
 		var localOrientation = new List<Quaternion>();
-		for (int i = 0; i < points.Count-1; i++) {
+		for (int i = 0; i < points.Count-1; i++)
+		{
+			Vector3 lineSegmentDirection1;
+			Vector3 lineSegmentDirection2;
+			
+			Quaternion quat1 = Quaternion.identity;
 			// Compute a unit length vector from the current point to the next:
-			Vector3 lineSegmentDirection = (points[i+1]-points[i]).normalized;
+			if (i == 0)
+			{
+				// First, compute directions & orientations for each line segment of the curve:
+				lineSegmentDirection1 = (points[i+1]-points[i]).normalized;
+				quat1 = Quaternion.LookRotation(lineSegmentDirection1, Vector3.up);
+			}
+			else
+			{
+				// for a better looking curve: for each curve point, first compute the *average direction* (normalized) of *both* incident line segments,
+				//   and then use that direction to compute the orientation of the point:
+				lineSegmentDirection1 = (points[i+1]-points[i]).normalized;
+				lineSegmentDirection2 = (points[i] - points[i - 1]).normalized;
+				quat1 = averageQuaternion(Quaternion.LookRotation(lineSegmentDirection1, Vector3.up),
+					Quaternion.LookRotation(lineSegmentDirection2, Vector3.up));
+
+			}
+			
 			// Store a matching orientation (computing an orientation requires a forward direction vector and an up direction vector):
-			localOrientation.Add(Quaternion.LookRotation(lineSegmentDirection,Vector3.up));
+			localOrientation.Add(quat1);
 		}
 
 		// Loop over all line segments in the curve:
-		for (int i = 0; i < points.Count-1; i++) {
+		for (int i = 0; i < points.Count-2; i++) {
 			// For each line segment, add a rotated version of the input mesh to the output mesh, using the localOrientation as rotation:
 			int numVerts = InputMesh.vertexCount;
 			for (int j = 0; j<InputMesh.vertexCount; j++) {
@@ -58,23 +82,31 @@ public class WarpMeshAlongSpline : MeshCreator
 				// Vector3 interpolatedLineSegmentPoint = Vector3.Lerp(points[i], points[i+1], t);
 				Vector3 interpolatedLineSegmentPoint = points[i]*(1-t) + points[i+1] * t; // Lerp = the weighted average between two vectors
 
-				// TODO: interpolate the orientations as well, not just the points!
-				Vector3 rotatedXYModelCoordinate = localOrientation[i] * inputV;
+				//interpolate the orientations as well, not just the points!
+				//Lerp - interpolation
+				Vector3 rotatedXYModelCoordinate = Quaternion.Lerp(localOrientation[i], localOrientation[i+1], t) * inputV;
 				
 				builder.AddVertex(
 					interpolatedLineSegmentPoint + rotatedXYModelCoordinate,
 					InputMesh.uv[j]/TextureScale
 				);
 			}
-			// TODO: Take submeshes into account:
-			int numTris = InputMesh.triangles.Length;
-			for (int j = 0; j < numTris; j+=3) {
-				builder.AddTriangle(
-					InputMesh.triangles[j] + numVerts * i,
-					InputMesh.triangles[j+1] + numVerts * i,
-					InputMesh.triangles[j+2] + numVerts * i
-				);
+			//Take submeshes into account:
+			for (int x = 0; x < InputMesh.subMeshCount; x++)
+			{
+				int[] numTris = InputMesh.GetTriangles(x);
+				//int numTris = InputMesh.triangles.Length;
+				
+				for (int j = 0; j < numTris.Length; j+=3) {
+					builder.AddTriangle(
+						numTris[j] + numVerts * i,
+						numTris[j+1] + numVerts * i,
+						numTris[j+2] + numVerts * i,
+						x
+					);
+				}
 			}
+			
 		}
 
 		Mesh mesh=builder.CreateMesh(true);
