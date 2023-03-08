@@ -9,7 +9,6 @@ using Color = UnityEngine.Color;
 [CustomEditor(typeof(BuildingSquare))]
 public class BSEditor : Editor
 {
-    
     private BuildingSquare building;
 
     private void OnEnable()
@@ -36,7 +35,6 @@ public class BSEditor : Editor
         }
 
         ShowAndMovePoints();
-       
     }
 
     // Example: here's how to draw a handle:
@@ -84,7 +82,7 @@ public class BSEditor : Editor
     {
         Transform handleTransform = building.transform;
 
-       
+
         Vector3 previousPoint = Vector3.zero;
         Vector3 nextPoint = Vector3.zero;
         building.buildingSpawns.Clear();
@@ -96,23 +94,57 @@ public class BSEditor : Editor
             Handles.color = Color.yellow;
             Vector3 assetSize = building.asset.GetComponentInChildren<Renderer>().bounds.size;
 
-            
+
             ShowRowOfBuildings(currentPoint, nextPoint, assetSize);
-           
-            
+
+
             // Draw position handles (see the above example code)
             // Record in the undo list and mark the scene dirty when the handle is moved.
-            
+
             //Begin change check needs to be here to check only changes that are happening when you move the point
             //Not, when you draw the lines!!!
             EditorGUI.BeginChangeCheck();
             currentPoint = Handles.PositionHandle(currentPoint, Quaternion.identity);
             
 
+            
+
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(building, "Save curve's positions");
+     
                 building.points[i] = handleTransform.InverseTransformPoint(currentPoint);
+                Vector3 point1 = handleTransform.TransformPoint(building.points[1]);
+                Vector3 point0 = handleTransform.TransformPoint(building.points[0]);
+                Vector3 point2 = handleTransform.TransformPoint(building.points[2]);
+                Vector3 point3 = handleTransform.TransformPoint(building.points[3]);
+                //Moving the points so the shape is always rectangle
+                switch(i)
+                {
+                    case 0:
+                        
+                        point3.z = currentPoint.z;
+                        point1.x = currentPoint.x;
+                        break;
+                    case 1:
+                        point2.z = currentPoint.z;
+                        point0.x = currentPoint.x;
+                        break;
+                    case 2:
+                        point1.z = currentPoint.z;
+                        point3.x = currentPoint.x;
+                        break;
+                    case 3:
+                        point0.z = currentPoint.z;
+                        point2.x = currentPoint.x;
+                        break;
+                }
+                
+                building.points[1] = handleTransform.InverseTransformPoint(point1);
+                building.points[3] = handleTransform.InverseTransformPoint(point3);
+                building.points[0] = handleTransform.InverseTransformPoint(point0);
+                building.points[2] = handleTransform.InverseTransformPoint(point2);
+        
                 //building.Apply();
             }
         }
@@ -122,29 +154,28 @@ public class BSEditor : Editor
     {
         int offset = 1;
         int distance = (int)Vector3.Distance(point1, point2);
-        for (int i = 0; i < distance+1; i++)
+        for (int i = 0; i < distance + 1; i++)
         {
-            
             if (Math.Abs(point1.x - point2.x) < 1 && point1.z < point2.z)
             {
-                Handles.DrawWireCube(new Vector3(point1.x,point1.y,point1.z+offset*i), size);
-                building.buildingSpawns.Add(new Vector3(point1.x,point1.y,point1.z+offset*i));
-            } 
+                Handles.DrawWireCube(new Vector3(point1.x, point1.y, point1.z + offset * i), size);
+                building.buildingSpawns.Add(new Vector3(point1.x, point1.y, point1.z + offset * i));
+            }
             else if (Math.Abs(point1.z - point2.z) < 1 && point1.x > point2.x)
             {
-                Handles.DrawWireCube(new Vector3(point1.x-offset*i,point1.y,point1.z), size);
-                building.buildingSpawns.Add(new Vector3(point1.x-offset*i,point1.y,point1.z));
+                Handles.DrawWireCube(new Vector3(point1.x - offset * i, point1.y, point1.z), size);
+                building.buildingSpawns.Add(new Vector3(point1.x - offset * i, point1.y, point1.z));
             }
             else if (Math.Abs(point1.x - point2.x) < 1 && point1.z > point2.z)
             {
-                Handles.DrawWireCube(new Vector3(point1.x,point1.y,point1.z-offset*i), size);
-                building.buildingSpawns.Add(new Vector3(point1.x,point1.y,point1.z-offset*i));
-            } else if (Math.Abs(point1.z - point2.z) < 1 && point1.x < point2.x)
-            {
-                Handles.DrawWireCube(new Vector3(point1.x+offset*i,point1.y,point1.z), size);
-                building.buildingSpawns.Add(new Vector3(point1.x+offset*i,point1.y,point1.z));
+                Handles.DrawWireCube(new Vector3(point1.x, point1.y, point1.z - offset * i), size);
+                building.buildingSpawns.Add(new Vector3(point1.x, point1.y, point1.z - offset * i));
             }
-
+            else if (Math.Abs(point1.z - point2.z) < 1 && point1.x < point2.x)
+            {
+                Handles.DrawWireCube(new Vector3(point1.x + offset * i, point1.y, point1.z), size);
+                building.buildingSpawns.Add(new Vector3(point1.x + offset * i, point1.y, point1.z));
+            }
         }
     }
 }

@@ -35,7 +35,7 @@ public class SaveMeshToOBJ : MonoBehaviour {
 		//vertices
 		Vector3[] verts = mesh.vertices;
 		for (int i=0; i<verts.Length; i++) {
-			float x = verts[i].x;
+			float x = verts[i].x * -1;
 			float y = verts[i].y;
 			float z = verts[i].z;
 			writer.WriteLine (String.Format ("v {0:F3} {1:F3} {2:F3}", x, y, z));
@@ -67,7 +67,7 @@ public class SaveMeshToOBJ : MonoBehaviour {
 			int v0 = tris[i * 3 + 0]+1;
 			int v1 = tris[i * 3 + 1]+1;
 			int v2 = tris[i * 3 + 2]+1;
-			writer.WriteLine(String.Format ("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}", v0, v1, v2));
+			writer.WriteLine(String.Format ("f {0}/{0}/{0} {1}/{1}/{1} {2}/{2}/{2}", v2, v1, v0));
 		}
 
 		writer.Close ();

@@ -6,7 +6,7 @@ using UnityEngine;
 public class BuildingSquare : MonoBehaviour
 {
     public GameObject asset;
-    public List<Vector3> points = new List<Vector3>();
+    public List<Vector3> points;
     public List<Vector3> buildingSpawns;
     
     private Vector3 point1;
