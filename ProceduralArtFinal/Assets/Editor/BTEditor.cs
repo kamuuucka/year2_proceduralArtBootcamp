@@ -6,20 +6,19 @@ using UnityEditor;
 using UnityEngine;
 using Color = UnityEngine.Color;
 
-[CustomEditor(typeof(BuildingSquare))]
-public class BSEditor : Editor
+[CustomEditor(typeof(BuildingTriangle))]
+public class BTEditor : Editor
 {
-    private BuildingSquare building;
+    private BuildingTriangle building;
 
     private void OnEnable()
     {
-        building = (BuildingSquare)target;
+        building = (BuildingTriangle)target;
     }
     
-    //TODO: Make it move in steps (show the new line only if it can be generated
-
-    // This method is called by Unity whenever it renders the scene view.
-    // We use it to draw gizmos, and deal with changes (dragging objects)
+    //TODO: Use draw lines to make the angled lines
+    //TODO: warp quad for pillars in the corners
+    
     void OnSceneGUI()
     {
         if (building.points == null)
@@ -37,20 +36,6 @@ public class BSEditor : Editor
         }
 
         ShowAndMovePoints();
-    }
-
-    public override void OnInspectorGUI()
-    {
-        base.OnInspectorGUI();
-        if (GUILayout.Button("Build"))
-        {
-            building.Generate();
-        }
-
-        if (GUILayout.Button("Clear"))
-        {
-            building.Destroy();
-        }
     }
 
     // Example: here's how to draw a handle:
@@ -102,14 +87,18 @@ public class BSEditor : Editor
         Vector3 previousPoint = Vector3.zero;
         Vector3 nextPoint = Vector3.zero;
         building.buildingSpawns.Clear();
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 3; i++)
         {
             Vector3 currentPoint = building.GetPoint(i);
-            nextPoint = i != 3 ? building.GetPoint(i + 1) : building.GetPoint(0);
+            nextPoint = i != 2 ? building.GetPoint(i + 1) : building.GetPoint(0);
 
             Handles.color = Color.yellow;
             Vector3 assetSize = building.asset.GetComponentInChildren<Renderer>().bounds.size;
-            
+
+
+            ShowRowOfBuildings(currentPoint, nextPoint, assetSize);
+
+
             // Draw position handles (see the above example code)
             // Record in the undo list and mark the scene dirty when the handle is moved.
 
@@ -118,87 +107,89 @@ public class BSEditor : Editor
             EditorGUI.BeginChangeCheck();
             currentPoint = Handles.PositionHandle(currentPoint, Quaternion.identity);
             
+
+            
+
             if (EditorGUI.EndChangeCheck())
             {
                 Undo.RecordObject(building, "Save curve's positions");
+     
                 building.points[i] = handleTransform.InverseTransformPoint(currentPoint);
-                
                 Vector3 point1 = handleTransform.TransformPoint(building.points[1]);
                 Vector3 point0 = handleTransform.TransformPoint(building.points[0]);
                 Vector3 point2 = handleTransform.TransformPoint(building.points[2]);
-                Vector3 point3 = handleTransform.TransformPoint(building.points[3]);
-                // //Moving the points so the shape is always rectangle
-                switch(i)
-                {
-                    case 0:
-                        point3.z = currentPoint.z;
-                        point1.x = currentPoint.x;
-                        break;
-                    case 1:
-                        point2.z = currentPoint.z;
-                        point0.x = currentPoint.x;
-                        break;
-                    case 2:
-                        point1.z = currentPoint.z;
-                        point3.x = currentPoint.x;
-                        break;
-                    case 3:
-                        point0.z = currentPoint.z;
-                        point2.x = currentPoint.x;
-                        break;
-                }
+               // Vector3 point3 = handleTransform.TransformPoint(building.points[3]);
+                //Moving the points so the shape is always rectangle
+                // switch(i)
+                // {
+                //     case 0:
+                //         
+                //         //point3.z = currentPoint.z;
+                //         point1.x = currentPoint.x;
+                //         break;
+                //     case 1:
+                //         point2.z = currentPoint.z;
+                //         point0.x = currentPoint.x;
+                //         break;
+                //     case 2:
+                //         point1.z = currentPoint.z;
+                //        // point3.x = currentPoint.x;
+                //         break;
+                //     case 3:
+                //         point0.z = currentPoint.z;
+                //         point2.x = currentPoint.x;
+                //         break;
+                // }
                 
-                building.points[1] = handleTransform.InverseTransformPoint(point1);
-                building.points[3] = handleTransform.InverseTransformPoint(point3);
-                building.points[0] = handleTransform.InverseTransformPoint(point0);
-                building.points[2] = handleTransform.InverseTransformPoint(point2);
-                
+                // building.points[1] = handleTransform.InverseTransformPoint(point1);
+                // //building.points[3] = handleTransform.InverseTransformPoint(point3);
+                // building.points[0] = handleTransform.InverseTransformPoint(point0);
+                // building.points[2] = handleTransform.InverseTransformPoint(point2);
         
                 //building.Apply();
             }
-            
-            ShowRowOfBuildings(currentPoint, nextPoint, assetSize);
         }
     }
 
     private void ShowRowOfBuildings(Vector3 point1, Vector3 point2, Vector3 size)
     {
-        int offset = 1;
-        float trueDistance = Vector3.Distance(point1, point2);
-        int distance = 0;
-        int previousDistance = 0;
-        if (trueDistance - (int)trueDistance < 0.1f)
+        float offset = size.x;
+        int distance = (int)Vector3.Distance(point1, point2);
+        //Bulding spawnpoint not on the point
+        //Handles.DrawWireCube(new Vector3(point1.x, point1.y, point1.z - offset),size);
+
+        for (int i = 1; i < distance; i++)
         {
-            previousDistance = (int)trueDistance;
-            distance = (int)trueDistance;
-        }
-        else
-        {
-            distance = previousDistance;
-        }
-        
-        for (int i = 0; i < distance; i++)
-        {
-            if (Math.Abs(point1.x - point2.x) < 1 && point1.z < point2.z)
+            if (Math.Abs(point1.x - point2.x) < 1)
             {
-                Handles.DrawWireCube(new Vector3(point1.x, point1.y, point1.z + offset * i), size);
-                building.buildingSpawns.Add(new Vector3(point1.x + size.x/2, point1.y, (point1.z + size.z / 2) + offset * i));
-            }
-            else if (Math.Abs(point1.z - point2.z) < 1 && point1.x > point2.x)
-            {
-                Handles.DrawWireCube(new Vector3(point1.x - offset * i, point1.y, point1.z), size);
-                building.buildingSpawns.Add(new Vector3(point1.x + size.x/2 - offset * i, point1.y, point1.z + size.z / 2) );
-            }
-            else if (Math.Abs(point1.x - point2.x) < 1 && point1.z > point2.z)
-            {
+                //Vector3 newPoint1 = Vector3.RotateTowards(new Vector3(0,0,point1.z),point2,2,0);
                 Handles.DrawWireCube(new Vector3(point1.x, point1.y, point1.z - offset * i), size);
-                building.buildingSpawns.Add(new Vector3(point1.x + size.z / 2, point1.y, point1.z + size.z / 2 - offset * i));
-            }
-            else if (Math.Abs(point1.z - point2.z) < 1 && point1.x < point2.x)
-            {
-                Handles.DrawWireCube(new Vector3(point1.x + offset * i, point1.y, point1.z), size);
-                building.buildingSpawns.Add(new Vector3(point1.x + size.z / 2 + offset * i, point1.y, point1.z + size.z / 2));
             }
         }
+        // 
+        // int distance = (int)Vector3.Distance(point1, point2);
+        // for (int i = 0; i < distance + 1; i++)
+        // {
+        //     if (Math.Abs(point1.x - point2.x) < 1 && point1.z < point2.z)
+        //     {
+        //         Handles.DrawWireCube(new Vector3(point1.x, point1.y, point1.z + offset * i), size);
+        //         building.buildingSpawns.Add(new Vector3(point1.x, point1.y, point1.z + offset * i));
+        //     }
+        //     else if (Math.Abs(point1.z - point2.z) < 1 && point1.x > point2.x)
+        //     {
+        //         Handles.DrawWireCube(new Vector3(point1.x - offset * i, point1.y, point1.z), size);
+        //         building.buildingSpawns.Add(new Vector3(point1.x - offset * i, point1.y, point1.z));
+        //     }
+        //     else if (Math.Abs(point1.x - point2.x) < 1 && point1.z > point2.z)
+        //     {
+        //         Handles.DrawWireCube(new Vector3(point1.x, point1.y, point1.z - offset * i), size);
+        //         building.buildingSpawns.Add(new Vector3(point1.x, point1.y, point1.z - offset * i));
+        //     }
+        //     else if (Math.Abs(point1.z - point2.z) < 1 && point1.x < point2.x)
+        //     {
+        //         Handles.DrawWireCube(new Vector3(point1.x + offset * i, point1.y, point1.z), size);
+        //         building.buildingSpawns.Add(new Vector3(point1.x + offset * i, point1.y, point1.z));
+        //     }
+        // }
     }
 }

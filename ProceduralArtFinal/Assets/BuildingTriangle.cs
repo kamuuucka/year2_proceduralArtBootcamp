@@ -1,9 +1,8 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BuildingSquare : MonoBehaviour
+public class BuildingTriangle : MonoBehaviour
 {
     public GameObject asset;
     public List<Vector3> points;
@@ -12,9 +11,7 @@ public class BuildingSquare : MonoBehaviour
     private Vector3 point1;
     private Vector3 point2;
     private Vector3 point3;
-    private Vector3 point4;
-
-
+    
     private void Start()
     {
         if (buildingSpawns != null)
@@ -23,36 +20,18 @@ public class BuildingSquare : MonoBehaviour
         }
     }
 
-    public void Generate()
+    private void Generate()
     {
         foreach (var building in buildingSpawns)
         {
             
-                int buildingIndex = 0;
-                GameObject newBuilding = Instantiate(asset, transform);
+            int buildingIndex = 0;
+            GameObject newBuilding = Instantiate(asset, transform);
 
-                // Place it in the grid:
-                newBuilding.transform.position = new Vector3(building.x, building.y, building.z);
+            // Place it in the grid:
+            newBuilding.transform.localPosition = new Vector3(building.x, building.y, building.z);
         }
         
-    }
-    
-
-    public void RemoveAllChildren()
-    {
-        foreach (Transform child in this.transform)
-        {
-            DestroyImmediate(child.gameObject);
-        }
-    }
-
-    public void Destroy()
-    {
-        //For some reason you have to destroy the children five times, those shitlings are immune to my powers
-        for (int i = 0; i < 5; i++)
-        {
-            RemoveAllChildren();
-        }
     }
     
     public Vector3 GetPoint(int pointIndex) {

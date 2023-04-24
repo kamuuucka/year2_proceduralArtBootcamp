@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BuildingSquare : MonoBehaviour
+public class BuildingSquareNew : MonoBehaviour
 {
     public GameObject asset;
     public List<Vector3> points;
@@ -28,11 +28,11 @@ public class BuildingSquare : MonoBehaviour
         foreach (var building in buildingSpawns)
         {
             
-                int buildingIndex = 0;
-                GameObject newBuilding = Instantiate(asset, transform);
+            int buildingIndex = 0;
+            GameObject newBuilding = Instantiate(asset, transform);
 
-                // Place it in the grid:
-                newBuilding.transform.position = new Vector3(building.x, building.y, building.z);
+            // Place it in the grid:
+            newBuilding.transform.localPosition = new Vector3(building.x, building.y, building.z);
         }
         
     }
