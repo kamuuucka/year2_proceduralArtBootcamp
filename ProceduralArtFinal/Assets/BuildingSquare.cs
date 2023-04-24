@@ -29,16 +29,28 @@ public class BuildingSquare : MonoBehaviour
     {
         for (int i = 0; i < floors; i++)
         {
-            foreach (var building in buildingSpawns)
+            GameObject newChild = new GameObject("Floor" + i);
+            newChild.transform.parent = transform;
+            for (var index = 0; index < buildingSpawns.Count; index++)
             {
-                int buildingIndex = 0;
-                GameObject newBuilding = Instantiate(asset, transform);
+                var building = buildingSpawns[index];
 
-                // Place it in the grid:
-                newBuilding.transform.position = new Vector3(building.x, building.y + assetSize.y * i, building.z);
+                if (index != 3)
+                {
+                    GameObject newBuilding = Instantiate(asset, newChild.transform.parent);
+                    newBuilding.transform.parent = newChild.transform;
+
+                    // Place it in the grid:
+                    newBuilding.transform.position = new Vector3(building.x, building.y + assetSize.y * i, building.z);
+                    
+                }
             }
         }
-        
+    }
+
+    private void MakeAGate(GameObject wall)
+    {
+        DestroyImmediate(wall);
     }
     
 
