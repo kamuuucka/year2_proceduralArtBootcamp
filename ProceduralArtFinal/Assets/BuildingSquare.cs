@@ -8,6 +8,8 @@ public class BuildingSquare : MonoBehaviour
     public GameObject asset;
     public List<Vector3> points;
     public List<Vector3> buildingSpawns;
+    public int floors = 1;
+    [HideInInspector]public Vector3 assetSize;
     
     private Vector3 point1;
     private Vector3 point2;
@@ -25,14 +27,16 @@ public class BuildingSquare : MonoBehaviour
 
     public void Generate()
     {
-        foreach (var building in buildingSpawns)
+        for (int i = 0; i < floors; i++)
         {
-            
+            foreach (var building in buildingSpawns)
+            {
                 int buildingIndex = 0;
                 GameObject newBuilding = Instantiate(asset, transform);
 
                 // Place it in the grid:
-                newBuilding.transform.position = new Vector3(building.x, building.y, building.z);
+                newBuilding.transform.position = new Vector3(building.x, building.y + assetSize.y * i, building.z);
+            }
         }
         
     }
@@ -49,7 +53,7 @@ public class BuildingSquare : MonoBehaviour
     public void Destroy()
     {
         //For some reason you have to destroy the children five times, those shitlings are immune to my powers
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 4 + floors; i++)
         {
             RemoveAllChildren();
         }
