@@ -2,14 +2,18 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = System.Random;
 
 public class BuildingSquare : MonoBehaviour
 {
     public GameObject asset;
+    public GameObject roof;
     public List<Vector3> points;
     public List<Vector3> buildingSpawns;
-    public int floors = 1;
     [HideInInspector]public Vector3 assetSize;
+    [SerializeField] private int floors = 1;
+    [SerializeField] private int doorHeight;
+    [SerializeField] private int direction;
     
     private Vector3 point1;
     private Vector3 point2;
@@ -27,6 +31,9 @@ public class BuildingSquare : MonoBehaviour
 
     public void Generate()
     {
+        GameObject newBuilding;
+        int line = buildingSpawns.Count / 4;
+        int doorPosition = UnityEngine.Random.Range(1, line + 1);
         for (int i = 0; i < floors; i++)
         {
             GameObject newChild = new GameObject("Floor" + i);
@@ -35,9 +42,17 @@ public class BuildingSquare : MonoBehaviour
             {
                 var building = buildingSpawns[index];
 
-                if (index != 3)
+                if (index != doorPosition + line * direction || i > doorHeight)
                 {
-                    GameObject newBuilding = Instantiate(asset, newChild.transform.parent);
+                    if (i == floors - 1)
+                    {
+                        newBuilding = Instantiate(roof, newChild.transform.parent);
+                    }
+                    else
+                    {
+                        newBuilding = Instantiate(asset, newChild.transform.parent);
+                    }
+                    
                     newBuilding.transform.parent = newChild.transform;
 
                     // Place it in the grid:
