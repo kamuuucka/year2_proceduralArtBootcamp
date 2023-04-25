@@ -20,7 +20,10 @@ public class BuildingSquare : MonoBehaviour
     private Vector3 point3;
     private Vector3 point4;
 
-
+    [SerializeField] private GameObject roof0;
+    [SerializeField] private GameObject roof1;
+    [SerializeField] private GameObject roof2;
+    [SerializeField] private GameObject roof3;
     private void Start()
     {
         if (buildingSpawns != null)
@@ -33,7 +36,8 @@ public class BuildingSquare : MonoBehaviour
     {
         GameObject newBuilding;
         int line = buildingSpawns.Count / 4;
-        int doorPosition = UnityEngine.Random.Range(1, line + 1);
+        int doorPosition = UnityEngine.Random.Range(1, line);
+        Vector3 modifier = new Vector3(0, 0, 0);
         for (int i = 0; i < floors; i++)
         {
             GameObject newChild = new GameObject("Floor" + i);
@@ -42,11 +46,48 @@ public class BuildingSquare : MonoBehaviour
             {
                 var building = buildingSpawns[index];
 
-                if (index != doorPosition + line * direction || i > doorHeight)
+                if (index != doorPosition + line * direction || i > doorHeight-1)
                 {
                     if (i == floors - 1)
                     {
-                        newBuilding = Instantiate(roof, newChild.transform.parent);
+                        if (index % line == 0)
+                        {
+                            newBuilding = Instantiate(roof0, newChild.transform.parent);
+                            newBuilding.transform.Rotate(Vector3.up, 90*( index/line-2));
+                            Debug.Log(index/line);
+                            switch (index / line)
+                            {
+                                case 0:
+                                    modifier = new Vector3(-1, 0, -1);
+                                    break;
+                                case 1:
+                                    modifier = new Vector3(-1, 0, 0);
+                                    break;
+                                case 2:
+                                    modifier = new Vector3(0, 0, 0);
+                                    break;
+                                case 3:
+                                    modifier = new Vector3(0, 0, -1);
+                                    break;
+                                
+                            }
+                        }
+                        else
+                        {
+                            //Classic roofs (not corners)
+                            newBuilding = Instantiate(roof, newChild.transform.parent);
+                            if ((index >= 1 && index < line) || (index >= line * 2 + 1 && index < line * 3))
+                            {
+                                newBuilding.transform.Rotate(Vector3.up, 90);
+                                modifier = new Vector3(0,0,-1);
+                            }
+                            else
+                            {
+                                modifier = new Vector3(0, 0, 0);
+                            }
+                            
+                        }
+
                     }
                     else
                     {
@@ -56,7 +97,7 @@ public class BuildingSquare : MonoBehaviour
                     newBuilding.transform.parent = newChild.transform;
 
                     // Place it in the grid:
-                    newBuilding.transform.position = new Vector3(building.x, building.y + assetSize.y * i, building.z);
+                    newBuilding.transform.position = new Vector3(building.x, building.y + assetSize.y * i, building.z) + modifier;
                     
                 }
             }

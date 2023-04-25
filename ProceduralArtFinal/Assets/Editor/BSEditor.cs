@@ -151,9 +151,6 @@ public class BSEditor : Editor
                 building.points[3] = handleTransform.InverseTransformPoint(point3);
                 building.points[0] = handleTransform.InverseTransformPoint(point0);
                 building.points[2] = handleTransform.InverseTransformPoint(point2);
-                
-        
-                //building.Apply();
             }
             
             ShowRowOfBuildings(currentPoint, nextPoint, building.assetSize);
